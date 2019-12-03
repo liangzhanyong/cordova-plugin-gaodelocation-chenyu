@@ -1,8 +1,8 @@
 var exec = require('cordova/exec');
 
 var GaoDe = {
-    getCurrentPosition:function (successFn,errorFn) {
-        exec(successFn,errorFn,'GaoDeLocation','getCurrentPosition',[]);
+    getCurrentPosition:function (options, successFn, errorFn) {
+        exec(successFn,errorFn,'GaoDeLocation','getCurrentPosition',[options]);
     }
 };
 

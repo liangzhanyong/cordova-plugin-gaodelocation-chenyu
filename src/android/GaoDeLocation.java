@@ -30,6 +30,7 @@ public class GaoDeLocation extends CordovaPlugin {
 
     //权限申请码
     private static final int PERMISSION_REQUEST_CODE = 500;
+    private int interval = 2 * 1000;
 
     /**
      * 需要进行检测的权限数组
@@ -50,12 +51,13 @@ public class GaoDeLocation extends CordovaPlugin {
     public static CallbackContext cb = null;
 
     /*
-    * 程序入口
-    * */
+     * 程序入口
+     * */
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("getCurrentPosition")) {
             cb = callbackContext;
+            interval = args.getJSONObject(0).getInt("interval");
             PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
             pluginResult.setKeepCallback(true);
             cb.sendPluginResult(pluginResult);
@@ -79,6 +81,8 @@ public class GaoDeLocation extends CordovaPlugin {
         if (locationClient == null) {
             this.initLocation();
         }
+        this.stopLocation();
+        locationClient.setLocationOption(getDefaultOption());
         this.startLocation();
     }
 
@@ -107,7 +111,7 @@ public class GaoDeLocation extends CordovaPlugin {
         mOption.setLocationMode(AMapLocationMode.Hight_Accuracy);//可选，设置定位模式，可选的模式有高精度、仅设备、仅网络。默认为高精度模式
         mOption.setGpsFirst(false);//可选，设置是否gps优先，只在高精度模式下有效。默认关闭
         mOption.setHttpTimeOut(30000);//可选，设置网络请求超时时间。默认为30秒。在仅设备模式下无效
-        mOption.setInterval(2000);//可选，设置定位间隔。默认为2秒
+        mOption.setInterval(interval);//可选，设置定位间隔。默认为2秒
         mOption.setNeedAddress(true);//可选，设置是否返回逆地理地址信息。默认是true
         mOption.setOnceLocation(false);//可选，设置是否单次定位。默认是false
         mOption.setOnceLocationLatest(false);//可选，设置是否等待wifi刷新，默认为false.如果设置为true,会自动变为单次定位，持续定位时不要使用
@@ -177,11 +181,11 @@ public class GaoDeLocation extends CordovaPlugin {
                 pluginResult.setKeepCallback(true);
                 cb.sendPluginResult(pluginResult);
             } catch (JSONException e) {
-                PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
-                pluginResult.setKeepCallback(true);
-                cb.sendPluginResult(pluginResult);
+                // PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+                // pluginResult.setKeepCallback(true);
+                // cb.sendPluginResult(pluginResult);
             } finally {
-                locationClient.stopLocation();
+                // locationClient.stopLocation();
             }
         }
     };
@@ -271,12 +275,12 @@ public class GaoDeLocation extends CordovaPlugin {
     }
 
     /*
-    * 权限检查回调
-    *
-    * @author
-    * */
+     * 权限检查回调
+     *
+     * @author
+     * */
     public void onRequestPermissionResult(int requestCode,
-                                           String[] permissions, int[] paramArrayOfInt) {
+                                          String[] permissions, int[] paramArrayOfInt) {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             this.getCurrentPosition();
         }
