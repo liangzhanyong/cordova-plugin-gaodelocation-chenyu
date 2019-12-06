@@ -18,23 +18,18 @@ import com.zjft.location.R;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static org.chromium.base.ContextUtils.getApplicationContext;
 
 public class GaoDeLocation extends CordovaPlugin {
     //声明AMapLocationClient类对象
@@ -78,14 +73,17 @@ public class GaoDeLocation extends CordovaPlugin {
             locationParam.setInterval(args.getJSONObject(0).getInt("interval"));
             locationParam.setLineNo(args.getJSONObject(0).getString("lineNo"));
             locationParam.setLineName(args.getJSONObject(0).getString("lineName"));
-            PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
-            pluginResult.setKeepCallback(true);
-            cb.sendPluginResult(pluginResult);
-            if(this.isNeedCheckPermissions(needPermissions)){
-                this.checkPermissions(needPermissions);
-            }else{
-                this.getCurrentPosition();
-            }
+            locationParam.setServerUrl(args.getJSONObject(0).getString("serverUrl"));
+            cordova.getThreadPool().execute(() -> {
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
+                pluginResult.setKeepCallback(true);
+                cb.sendPluginResult(pluginResult);
+                if(isNeedCheckPermissions(needPermissions)){
+                    checkPermissions(needPermissions);
+                }else{
+                    getCurrentPosition();
+                }
+            });
             return true;
         }
         else if(action.equals("stopLocation")) {
@@ -229,6 +227,7 @@ public class GaoDeLocation extends CordovaPlugin {
             if(msg.what == LOCATION_SUCCESS) {
                 try {
                     Date date = new Date();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     JSONObject params = new JSONObject();
                     JSONObject obj = (JSONObject)msg.obj;
 
@@ -236,11 +235,11 @@ public class GaoDeLocation extends CordovaPlugin {
                     params.put("lineName", locationParam.getLineName());
                     params.put("lng", obj.get("longitude"));
                     params.put("lat", obj.get("latitude"));
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    params.put("locationType", obj.get("type"));
+                    params.put("accuracy", obj.get("accuracy"));
                     params.put("locationDate", dateFormat.format(date).substring(0, 10));
                     params.put("locationTime", dateFormat.format(date).substring(11));
-                    String result = HttpUtil.doPost("http://171.221.175.230:8070/iTMS/visible/cartrace/insertLocation", params.toString());
-                    Log.i("HTTP RESULT", result);
+                    HttpUtil.doPost(locationParam.serverUrl + "visible/cartrace/insertLocation", params.toString());
                 } catch(Exception e) {}
             }
         }
@@ -261,7 +260,9 @@ public class GaoDeLocation extends CordovaPlugin {
      */
     private void stopLocation() {
         // 停止定位
-        locationClient.stopLocation();
+        if (locationClient != null) {
+            locationClient.stopLocation();
+        }
     }
 
     /**
@@ -388,6 +389,7 @@ public class GaoDeLocation extends CordovaPlugin {
         private int interval = 2 * 1000;
         private String lineNo;
         private String lineName;
+        private String serverUrl;
 
         public LocationParam() {
         }
@@ -414,6 +416,14 @@ public class GaoDeLocation extends CordovaPlugin {
 
         public void setLineName(String lineName) {
             this.lineName = lineName;
+        }
+
+        public String getServerUrl() {
+            return serverUrl;
+        }
+
+        public void setServerUrl(String serverUrl) {
+            this.serverUrl = serverUrl;
         }
     }
 }

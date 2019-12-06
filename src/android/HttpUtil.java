@@ -24,19 +24,13 @@ public class HttpUtil {
      * @param callBack
      */
     public static void doGetAsyn(final String urlStr, final CallBack callBack) {
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    String result = doGet(urlStr);
-                    if (callBack != null) {
-                        callBack.onRequestComplete(result);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+        new Thread(() -> {
+            try {
+                String result = doGet(urlStr);
+                if (callBack != null) {
+                    callBack.onRequestComplete(result);
                 }
-            }
+            } catch (Exception e) { }
         }).start();
     }
 
@@ -49,18 +43,13 @@ public class HttpUtil {
      */
     public static void doPostAsyn(final String urlStr, final String params,
                                   final CallBack callBack) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String result = doPost(urlStr, params);
-                    if (callBack != null) {
-                        callBack.onRequestComplete(result);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+        new Thread(() -> {
+            try {
+                String result = doPost(urlStr, params);
+                if (callBack != null) {
+                    callBack.onRequestComplete(result);
                 }
-            }
+            } catch (Exception e) { }
         }).start();
     }
 
@@ -73,7 +62,7 @@ public class HttpUtil {
      * @throws Exception
      */
     public static String doGet(String urlStr) {
-        URL url = null;
+        URL url;
         HttpURLConnection conn = null;
         InputStream is = null;
         ByteArrayOutputStream baos = null;
@@ -98,23 +87,18 @@ public class HttpUtil {
             } else {
                 throw new RuntimeException(" responseCode is not 200 ... ");
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        }
+        catch (MalformedURLException e) { }
+        catch (IOException e) { }
+        finally {
             try {
                 if (is != null)
                     is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } catch (IOException e) { }
             try {
                 if (baos != null)
                     baos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } catch (IOException e) { }
             conn.disconnect();
         }
         return null;
@@ -164,9 +148,7 @@ public class HttpUtil {
             while ((line = in.readLine()) != null) {
                 result += line;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { }
         // 使用finally块来关闭输出流、输入流
         finally {
             try {
@@ -176,9 +158,7 @@ public class HttpUtil {
                 if (in != null) {
                     in.close();
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            } catch (IOException ex) { }
         }
         return result;
     }
