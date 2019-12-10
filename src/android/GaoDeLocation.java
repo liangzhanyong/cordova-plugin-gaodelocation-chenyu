@@ -25,6 +25,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -228,6 +229,7 @@ public class GaoDeLocation extends CordovaPlugin {
                 try {
                     Date date = new Date();
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String uuid = Settings.Secure.getString(cordova.getActivity().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
                     JSONObject params = new JSONObject();
                     JSONObject obj = (JSONObject)msg.obj;
 
@@ -239,6 +241,7 @@ public class GaoDeLocation extends CordovaPlugin {
                     params.put("accuracy", obj.get("accuracy"));
                     params.put("locationDate", dateFormat.format(date).substring(0, 10));
                     params.put("locationTime", dateFormat.format(date).substring(11));
+                    params.put("deviceID", uuid);
                     HttpUtil.doPost(locationParam.serverUrl + "visible/cartrace/insertLocation", params.toString());
                 } catch(Exception e) {}
             }
